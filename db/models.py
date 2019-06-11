@@ -10,8 +10,13 @@ class Tradable(Base):
     __tablename__ = 'tradables'
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
+    enabled = Column(Boolean)
 
     options = relationship('Option')
+
+    def __repr__(self):
+        return '<Tradable: %s>' % self.name
+
 
 class Option(Base):
     ''' Class to Represent an Option
@@ -31,7 +36,7 @@ class Option(Base):
     values = relationship('OptionData')
 
     def __repr__(self):
-        return '<Option: %s>' % self.symbol
+        return '<Option: %s %s>' % (self.type, self.symbol)
 
 class OptionData(Base):
     ''' Class to Represent an Option Data Snapshot

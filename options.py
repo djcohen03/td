@@ -1,3 +1,4 @@
+import time
 import datetime
 import tdtoken
 from tdclient import TDClient
@@ -22,8 +23,7 @@ class Helpers(object):
                 strike=strike,
                 expiration=expiration,
             )
-            session.add(option)
-            print 'Saved: %s' % option
+            print 'Created: %s' % option
             return option
 
 class OptionsDataClient(object):
@@ -37,21 +37,29 @@ class OptionsDataClient(object):
         '''
         self.tdclient.authenticate()
 
-    def fetch(self):
+    def fetch(self, name):
         '''
         '''
+        start = time.time()
         # Query the TD API:
-        tradable = session.query(Tradable).filter_by(name='SPY').first()
+        tradable = session.query(Tradable).filter_by(name=name).first()
         response = self.tdclient.optionschain(tradable.name)
 
-        # Parse the Calls and Puts in the Response:
-        self._parse(response['callExpDateMap'], tradable)
-        self._parse(response['putExpDateMap'], tradable)
+        # Gather some base values:
+        interest = response['interestRate']
+        price = response['underlyingPrice']
 
-    def _parse(self, datemap, tradable):
-        '''
+        # Parse the Calls and Puts in the Response:
+        self._parse(response['callExpDateMap'], tradable, price, interest)
+        self._parse(response['putExpDateMap'], tradable, price, interest)
+
+        print 'Finished Fetching %s Options Data In %.2fs' % (tradable, time.time() - start)
+
+    def _parse(self, datemap, tradable, underlyingprice, interest):
+        ''' Parse the options chain data and insert in into the Database
         '''
         now = datetime.datetime.now()
+        bulksave = []
         for datestr in datemap:
             expdate, _ = datestr.split(':')
             expiration = datetime.datetime.strptime(expdate, '%Y-%m-%d').date()
@@ -99,13 +107,19 @@ class OptionsDataClient(object):
                     option=option,
                     time=now,
                 )
-                session.add(optiondata)
-                session.commit()
-                print 'Saved: %s' % optiondata
+                bulksave.append(option)
+                bulksave.append(optiondata)
+                print 'Created: %s' % optiondata
+
+        print 'Saving All Data For %s...' % tradable
+        session.add_all(bulksave)
+        session.commit()
 
 
 
-client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
-client.fetch()
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
+    tradables = session.query(Tradable).filter_by(name='SPY').all()
+    client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
+    for tradable in tradables:
+        client.fetch(tradable.name)
