@@ -65,7 +65,8 @@ class OptionsDataClient(object):
         alloptions = []
         alloptionsdata = []
         for datemap, calltype in [(calls, 'Calls'), (puts, 'Puts')]:
-            for datestr in datemap:
+            dates = datemap.keys()
+            for datestr in sorted(dates):
                 # Parse the Date String into a datetime object:
                 expdate, _ = datestr.split(':')
                 expiration = datetime.datetime.strptime(expdate, '%Y-%m-%d').date()
