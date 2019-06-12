@@ -73,5 +73,9 @@ class OptionData(Base):
     option_id = Column(Integer, ForeignKey('options.id'))
     option = relationship('Option')
 
+    __mapper_args__ = {
+        'order_by': time
+    }
+
     def __repr__(self):
         return '<OptionData: %s>' % self.time
