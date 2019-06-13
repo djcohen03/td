@@ -21,12 +21,14 @@ for date in options:
     }
     for option in options[date]:
         value = option.values[-1]
-        point = (
-            abs(float(value.delta)),
-            float(value.volatility),
-            value.dte
-        )
-        chain[option.type].append(point)
+        delta = float(value.delta)
+        if abs(value.bid - value.ask) < 0.05:
+            point = (
+                delta, # if delta >= 0 else delta * -5.,
+                float(value.volatility),
+                value.dte
+            )
+            chain[option.type].append(point)
 
 
     # Sort the chain by delta:
@@ -41,7 +43,13 @@ for date in options:
 
         plt.plot(deltas, vols, '-', color=colors, linewidth=linewidth)
 
-plt.xlim(0.05, 0.8)
-plt.ylim(10, 30);
+plt.xlim(-1, 1)
+plt.ylim(10, 30)
 plt.axvline(x=0.5, color='black')
+plt.axvline(x=-0.5, color='black')
+
+plt.xlabel('Delta')
+plt.ylabel('IV')
+plt.title('SPY Delta/IV Skew Across Various Expirations')
+plt.legend(['Calls', 'Puts'])
 plt.show()
