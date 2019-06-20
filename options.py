@@ -1,6 +1,7 @@
 import time
 import datetime
 import tdtoken
+import skew
 from tdclient import TDClient
 from db.models import Tradable, Option, OptionData, session
 
@@ -136,4 +137,5 @@ if __name__ == '__main__':
         client.authenticate()
         for tradable in tradables:
             client.fetch(tradable.name)
-        time.sleep(60 * 90)
+        # skew.makechart()
+        time.sleep(60 * 60)
