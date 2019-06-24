@@ -2,10 +2,9 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+import dbpaths
 
-# todo: make the database name/user/password configurable:
-dbpath = 'postgresql://david:david@localhost/options'
-engine = create_engine(dbpath)
+engine = create_engine(dbpaths.aws)
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
 

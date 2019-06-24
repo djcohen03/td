@@ -2,3 +2,4 @@ tdtoken.py
 misc.py
 *.pyc
 skews/*
+db/dbpaths.py
