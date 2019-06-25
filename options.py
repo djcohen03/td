@@ -1,7 +1,6 @@
 import time
 import datetime
 import tdtoken
-import skew
 from tdclient import TDClient
 from db.models import Tradable, Option, OptionData, session
 
@@ -133,9 +132,6 @@ class OptionsDataClient(object):
 if __name__ == '__main__':
     client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
     tradables = session.query(Tradable).filter_by(name='SPY').all()
-    while True:
-        client.authenticate()
-        for tradable in tradables:
-            client.fetch(tradable.name)
-        # skew.makechart()
-        time.sleep(60 * 30)
+    client.authenticate()
+    for tradable in tradables:
+        client.fetch(tradable.name)
