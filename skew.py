@@ -39,68 +39,48 @@ def plotchain(chain, filename, title, ylower=0, yupper=40):
     print 'Saved New Skew Chart %s' % filename
 
 
-def makechart(name='SPY'):
+def makechart(filename, title, name='SPY'):
     print 'Constructing Skew Chart for %s...' % name
-
+    start = time.time()
     #
     tradable = session.query(Tradable).filter_by(name=name).first()
 
-    # Bin options by expiration date:
-    options = {}
-    for option in tradable.options:
-        options.setdefault(option.expiration, []).append(option)
+    # Get All Option IDs for this Tradable:
+    print 'Fetching %s Options...' % tradable.name
+    query = session.execute("SELECT id FROM options WHERE tradable_id=%s;" % tradable.id)
+    optionids = [str(id) for (id,) in query]
 
+    # Get the Time of The Most Recent Options Data Query For this Tradable:
+    print 'Fetching Most Recent Fetch Time...'
+    query = session.execute("SELECT MAX(time) FROM options_data WHERE option_id IN (%s);" % ', '.join(optionids))
+    mostrecent = list(query)[0][0]
+    print 'Most recent Fetch Was: %s' % mostrecent
 
-    # today = datetime.date.today()
-    # maxdte = float(max([(k - today).days for k in options.keys()]))
+    # Get the options data ids for the most recent fetch:
+    print 'Fetching Most Recent Fetch Options Data IDs...'
+    query = session.execute("SELECT id FROM options_data WHERE time='%s';" % str(mostrecent))
+    dataids = [int(id) for (id,) in query]
+
+    # Get all the options Values:
+    print 'Fetching Most Recent Fetch Options Data Records...'
+    values = session.query(OptionData).filter(OptionData.id.in_(dataids)).all()
+
+    print 'Constructing Options Chain...'
+    chain = {
+        'PUT': [],
+        'CALL': []
+    }
     plt.figure(figsize=(16, 8))
-    for date in options:
-        chain = {
-            'PUT': [],
-            'CALL': []
-        }
-        for option in options[date]:
-            value = option.values[-1]
-            delta = float(value.delta)
-            if abs(value.bid - value.ask) <= 0.10:
-                point = (
-                    delta, # if delta >= 0 else delta * -5.,
-                    float(value.volatility),
-                    value.dte
-                )
-                chain[option.type].append(point)
+    for value in values:
+        if abs(value.bid - value.ask) <= 0.10:
+            chain[value.option.type].append((
+                float(value.delta), # if delta >= 0 else delta * -5.,
+                float(value.volatility),
+                value.dte
+            ))
 
-
-        # Sort the chain by delta:
-        for (ctype, color) in [('CALL', (1.0, 0, 0)), ('PUT', (0, 0, 1.0))]:
-            values = chain[ctype]
-            if values:
-                # Sort and Unpack the Delta/IV/DTE Values:
-                values.sort()
-                deltas, vols, dte = zip(*values)
-
-                # Determine the Color and Line Width:
-                alpha = (1. / (dte[0] + 1)) ** 0.25
-                colors = color + (alpha,)
-                linewidth = 4 * alpha / 2
-
-                # Plot the Line:
-                plt.plot(deltas, vols, '-', color=colors, linewidth=linewidth)
-
-    plt.xlim(-1, 1)
-    plt.ylim(10, 30)
-    plt.axvline(x=0.5, color='black')
-    plt.axvline(x=-0.5, color='black')
-
-    plt.xlabel('Delta')
-    plt.ylabel('IV')
-    plt.title('%s Delta/IV Skew Across Various Expirations' % tradable.name)
-    plt.legend(['Calls', 'Puts'])
-    # plt.show()
-    filename = 'skews/%s-CallPutSkew-%s' % (tradable.name, int(time.time()))
-    plt.savefig(filename, edgecolor='black')
-
-    print 'Saved New Skew Chart %s' % filename
+    plotchain(chain, filename, title, ylower=0, yupper=40)
+    print 'Finished makechart in %.2fs' % (time.time() - start)
 
 def getchains(name='SPY'):
     start = time.time()
