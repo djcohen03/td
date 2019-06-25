@@ -138,4 +138,4 @@ if __name__ == '__main__':
         for tradable in tradables:
             client.fetch(tradable.name)
         # skew.makechart()
-        time.sleep(60 * 60)
+        time.sleep(60 * 30)
