@@ -6,6 +6,20 @@ from db.models import Tradable, Option, OptionData, session
 
 class Helpers(object):
     @classmethod
+    def ismarketopen(cls):
+        ''' Determine if the market is open
+        '''
+        now = datetime.datetime.now()
+        if now.weekday() >= 5:
+            print 'It is a Weekend, Market is Closed...'
+            return False
+        elif now.hour > 21 or (now.hour <= 13 and now.minute < 30):
+            print 'Market Is Closed for the Day (%)...' % now
+            return False
+        print 'Market is current open: %s' % now
+        return True
+
+    @classmethod
     def getoption(cls, tradable, expiration, type, description, symbol, exchange, expirationtype, strike):
         ''' Get the given Option if it exists, else create a new Option instace
         '''
@@ -130,8 +144,8 @@ class OptionsDataClient(object):
 
 
 if __name__ == '__main__':
-    client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
-    tradables = session.query(Tradable).filter_by(name='SPY').all()
-    client.authenticate()
-    for tradable in tradables:
-        client.fetch(tradable.name)
+    if Helpers.ismarketopen():
+        client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
+        tradables = session.query(Tradable).filter_by(name='SPY').all()
+        for tradable in tradables:
+            client.fetch(tradable.name)
