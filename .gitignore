@@ -4,3 +4,4 @@ misc.py
 skews/*
 db/dbpaths.py
 logs.txt
+logs.*.txt
