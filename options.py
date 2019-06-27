@@ -1,3 +1,4 @@
+import sys
 import time
 import datetime
 import tdtoken
@@ -13,7 +14,7 @@ class Helpers(object):
         if now.weekday() >= 5:
             print 'It is a Weekend, Market is Closed...'
             return False
-        elif now.hour >= 20 or now.hour <= 13:
+        elif now.hour >= 20 or now.hour < 13:
             print 'Market Is Closed for the Day (%s)...' % now
             return False
         print 'Market is current open: %s' % now
@@ -145,7 +146,21 @@ class OptionsDataClient(object):
 
 if __name__ == '__main__':
     if Helpers.ismarketopen():
-        client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
-        tradables = session.query(Tradable).filter_by(name='SPY').all()
-        for tradable in tradables:
-            client.fetch(tradable.name)
+        args = sys.argv
+        if len(args) <= 1:
+            print 'Please specify a -t tradable or --all for all enabled tradables'
+
+        elif args[1] == '-t':
+            # Fetch One Specific Tradable:
+            tradable = args[2]
+            client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
+            tradable = session.query(Tradable).filter_by(name=tradable).first()
+            if tradable:
+                client.fetch(tradable.name)
+
+        elif args[1] == '--all':
+            # Ftech all enabled tradables:
+            client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
+            tradables = session.query(Tradable).filter_by(enabled=True).all()
+            for tradable in tradables:
+                client.fetch(tradable.name)
