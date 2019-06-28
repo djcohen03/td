@@ -39,10 +39,21 @@ def plotchain(chain, filename, title, ylower=0, yupper=40):
     print 'Saved New Skew Chart %s' % filename
 
 
-def makechart(filename, title, name='SPY'):
+def makechart(filename, title, name='SPY', yupper=40, maxspread=0.1):
     print 'Constructing Skew Chart for %s...' % name
     start = time.time()
-    #
+
+    # Get the most recent options chain:
+    chain = getchain(name=name, maxspread=maxspread)
+
+    # Plot the most recent options chain:
+    plotchain(chain, filename, title, ylower=0, yupper=yupper)
+    print 'Finished makechart in %.2fs' % (time.time() - start)
+
+def getchain(name='SPY', maxspread=0.1):
+    ''' Get the most recent options chain for the given tradable, filtering by
+        the given maximum bid/ask spread
+    '''
     tradable = session.query(Tradable).filter_by(name=name).first()
 
     # Get All Option IDs for this Tradable:
@@ -51,7 +62,7 @@ def makechart(filename, title, name='SPY'):
     optionids = [str(id) for (id,) in query]
 
     # Get the Time of The Most Recent Options Data Query For this Tradable:
-    print 'Fetching Most Recent Fetch Time...'
+    print 'Determining Most Recent Fetch Time...'
     query = session.execute("SELECT MAX(time) FROM options_data WHERE option_id IN (%s);" % ', '.join(optionids))
     mostrecent = list(query)[0][0]
     print 'Most recent Fetch Was: %s' % mostrecent
@@ -62,7 +73,7 @@ def makechart(filename, title, name='SPY'):
     dataids = [int(id) for (id,) in query]
 
     # Get all the options Values:
-    print 'Fetching Most Recent Fetch Options Data Records...'
+    print 'Collecting Options Data Records From Most Recent API Fetch...'
     values = session.query(OptionData).filter(OptionData.id.in_(dataids)).all()
 
     print 'Constructing Options Chain...'
@@ -70,17 +81,15 @@ def makechart(filename, title, name='SPY'):
         'PUT': [],
         'CALL': []
     }
-    plt.figure(figsize=(16, 8))
     for value in values:
-        if abs(value.bid - value.ask) <= 0.10:
+        if abs(value.bid - value.ask) <= maxspread and abs(value.volatility) < 100.0:
             chain[value.option.type].append((
                 float(value.delta), # if delta >= 0 else delta * -5.,
                 float(value.volatility),
                 value.dte
             ))
+    return chain
 
-    plotchain(chain, filename, title, ylower=0, yupper=40)
-    print 'Finished makechart in %.2fs' % (time.time() - start)
 
 def getchains(name='SPY'):
     start = time.time()
