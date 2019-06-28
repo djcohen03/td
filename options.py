@@ -142,6 +142,7 @@ class OptionsDataClient(object):
         session.add_all(alloptions)
         session.add_all(alloptionsdata)
         session.commit()
+        print 'Saving Complete (%s)' % datetime.datetime.now()
 
 
 if __name__ == '__main__':

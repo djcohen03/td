@@ -1,5 +1,6 @@
 import time
 import datetime
+import traceback
 import matplotlib.pyplot as plt
 from db.models import Tradable, Option, OptionData, session
 
@@ -146,15 +147,18 @@ def getchains(name='SPY'):
 def makegif(name='SPY'):
     chains = getchains(name=name)
     for timestamp, chain in chains.iteritems():
-        dt = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f+00:00')
-        filename = 'skews/gifs/SPY-%s.jpg' % dt.strftime('%s')
-        plotchain(
-            chain=chain,
-            filename=filename,
-            title=dt.strftime('%c'),
-            ylower=0,
-            yupper=40
-        )
+        try:
+            dt = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
+            filename = 'skews/gifs3/%s-%s.jpg' % (name, dt.strftime('%s'))
+            plotchain(
+                chain=chain,
+                filename=filename,
+                title=dt.strftime('%a %b %d at %I:%M %p'),
+                ylower=0,
+                yupper=40
+            )
+        except:
+            print traceback.format_exc()
 
 if __name__ == '__main__':
     makegif()
