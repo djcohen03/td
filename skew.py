@@ -144,12 +144,12 @@ def getchains(name='SPY'):
     return chains
 
 
-def makegif(name='SPY'):
+def makegif(name='SPY', folder='skews/gifs'):
     chains = getchains(name=name)
     for timestamp, chain in chains.iteritems():
         try:
             dt = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
-            filename = 'skews/gifs3/%s-%s.jpg' % (name, dt.strftime('%s'))
+            filename = '%s/%s-%s.jpg' % (folder, name, dt.strftime('%s'))
             plotchain(
                 chain=chain,
                 filename=filename,
