@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Numeric, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
-from base import Base
-from session import session, engine
+from .base import Base
+from .session import session, engine
 
 
 class Tradable(Base):
