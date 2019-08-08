@@ -135,6 +135,7 @@ class OptionsDataClient(object):
                         time=now,
                         riskfree=riskfree,
                         underlying=underlying,
+                        openinterest=data['openInterest'],
                     )
                     alloptions.append(option)
                     alloptionsdata.append(optiondata)

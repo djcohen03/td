@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Numeric, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
-from base import Base
-from session import session, engine
+from .base import Base
+from .session import session, engine
 
 
 class Tradable(Base):
@@ -36,7 +36,12 @@ class Option(Base):
     values = relationship('OptionData')
 
     def __repr__(self):
-        return '<Option: %s %s>' % (self.type, self.symbol)
+        return '<%s %s Option, %s - %s>' % (
+            self.tradable.name,
+            self.type,
+            self.strike,
+            self.expiration
+        )
 
 class OptionData(Base):
     ''' Class to Represent an Option Data Snapshot
@@ -69,6 +74,7 @@ class OptionData(Base):
     time = Column(DateTime)
     underlying = Column(Numeric)
     riskfree = Column(Numeric)
+    openinterest = Column(Integer)
 
     option_id = Column(Integer, ForeignKey('options.id'))
     option = relationship('Option')
