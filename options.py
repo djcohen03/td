@@ -10,11 +10,12 @@ class Helpers(object):
     def ismarketopen(cls):
         ''' Determine if the market is open
         '''
+        return True
         now = datetime.datetime.now()
         if now.weekday() >= 5:
             print 'It is a Weekend, Market is Closed...'
             return False
-        elif now.hour >= 20 or now.hour < 13:
+        elif now.hour > 20 or now.hour < 13:
             print 'Market Is Closed for the Day (%s)...' % now
             return False
         print 'Market is current open: %s' % now
