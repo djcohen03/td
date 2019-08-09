@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 from .dbpaths import *
 
-engine = create_engine(aws)
+engine = create_engine(dbpath)
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
 
