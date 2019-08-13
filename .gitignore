@@ -2,6 +2,7 @@ tdtoken.py
 misc.py
 *.pyc
 skews/*
+ois/*
 db/dbpaths.py
 logs.txt
 logs.*.txt
