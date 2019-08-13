@@ -41,11 +41,17 @@ class OpenInterest(object):
             plt.bar(strikes, callvals, label='Calls', color=self.callcolor, edgecolor=(0, 0, 0, 0))
 
             # Add a black vertical line where the current price is:
-            plt.axvline(x=self.underlying, color='black')
+            plt.axvline(x=self.underlying, color='black', lw=1.75)
+
+            # Attempt to compute and add the open-interest-weighted predictor:
+            oiestimator = self.oipredictor(expirationchain)
+            if oiestimator:
+                plt.axvline(x=oiestimator, color='purple', lw=1.75)
 
             # Use a standard yaxis limit:
             if ylim:
                 plt.ylim([0, ylim])
+
 
             plt.legend()
             plt.ylabel('Open Interest')
@@ -54,6 +60,29 @@ class OpenInterest(object):
             filename = '%s/%s' % (folder, str(index).zfill(4))
             plt.savefig(filename, edgecolor='black')
             plt.close()
+
+
+    def oipredictor(self, chain):
+        ''' Calculates the Weighted Open-Interest predictor based on the
+            following White Paper:
+            https://www.researchgate.net/publication/305194232_Trading_on_the_information_content_of_open_interest_Evidence_from_the_US_equity_options_market
+        '''
+        puts = chain['PUT']
+        calls = chain['CALL']
+
+        callinterest = sum(calls.values())
+        putinterest = sum(puts.values())
+
+        weightedcallinterests = sum([strike * oi for strike, oi in calls.iteritems()])
+        weightedputinterests = sum([strike * oi for strike, oi in puts.iteritems()])
+
+        if callinterest or putinterest:
+            estimate = (weightedcallinterests + weightedputinterests) / (callinterest + putinterest)
+            return estimate
+        else:
+            # Avoid division by zero error
+            return None
+
 
     def getchain(self):
         ''' Get the most recent options surface for this object's tradable
