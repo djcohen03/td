@@ -3,7 +3,7 @@ import time
 import datetime
 import tdtoken
 from tdclient import TDClient
-from db.models import Tradable, Option, OptionData, session
+from db.models import Tradable, Option, OptionData, OptionsFetch, session
 
 class Helpers(object):
     @classmethod
@@ -76,6 +76,9 @@ class OptionsDataClient(object):
         calls = data['callExpDateMap']
         puts = data['putExpDateMap']
 
+        # Create an OptionsFetch wrapper for this fetch:
+        fetch = OptionsFetch(tradable=tradable, time=now)
+
         # Loop Through The Entire Options Chain:
         alloptions = []
         alloptionsdata = []
@@ -135,6 +138,7 @@ class OptionsDataClient(object):
                         riskfree=riskfree,
                         underlying=underlying,
                         openinterest=data['openInterest'],
+                        fetch=fetch
                     )
                     alloptions.append(option)
                     alloptionsdata.append(optiondata)

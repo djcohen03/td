@@ -1,3 +1,4 @@
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Numeric, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 from .base import Base
@@ -13,6 +14,7 @@ class Tradable(Base):
     enabled = Column(Boolean)
 
     options = relationship('Option')
+    fetches = relationship('OptionsFetch')
 
     def __repr__(self):
         return '<Tradable: %s>' % self.name
@@ -79,9 +81,38 @@ class OptionData(Base):
     option_id = Column(Integer, ForeignKey('options.id'))
     option = relationship('Option')
 
+    fetch_id = Column(Integer, ForeignKey('options_fetch.id'))
+    fetch = relationship('OptionsFetch')
+
     __mapper_args__ = {
         'order_by': time
     }
 
     def __repr__(self):
         return '<OptionData: %s>' % self.time
+
+class OptionsFetch(Base):
+    '''
+    '''
+    __tablename__ = 'options_fetch'
+    id = Column(Integer, primary_key=True)
+
+    tradable_id = Column(Integer, ForeignKey('tradables.id'))
+    tradable = relationship('Tradable')
+    values = relationship('OptionData')
+
+    time = Column(DateTime)
+    volatility = Column(Numeric)
+    oi = Column(Integer)
+    volume = Column(Integer)
+
+    __mapper_args__ = {
+        'order_by': time
+    }
+
+    @property
+    def cststring(self):
+        ''' Convert the given datetime into a CST String
+        '''
+        csttime = self.time - relativedelta(hours=5)
+        return csttime.strftime('%B %d at %I:%M') # Central')
