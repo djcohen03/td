@@ -3,6 +3,7 @@ import time
 import datetime
 import tdtoken
 from tdclient import TDClient
+from implied import VIXImplied
 from db.models import Tradable, Option, OptionData, OptionsFetch, session
 
 class Helpers(object):
@@ -149,6 +150,33 @@ class OptionsDataClient(object):
         session.commit()
         print 'Saving Complete (%s)' % datetime.datetime.now()
 
+    @classmethod
+    def updatevols(cls):
+        ''' Update the values of OptionsFetch volatility, oi, volume columns
+        '''
+        ids = [id for id, in session.query(OptionsFetch.id).all()]
+        for id in ids:
+            fetch = session.query(OptionsFetch).get(id)
+
+            # Implied Volatility:
+            if fetch.volatility is None:
+                try:
+                    print 'Loading Implied Vol For %s...' % fetch.id
+                    fetch.volatility = VIXImplied.getiv(fetch)
+                except:
+                    session.rollback()
+            # Volume:
+            if fetch.volume is None:
+                print 'Loading Volume For %s...' % fetch.id
+                fetch.volume = VIXImplied.volume(fetch)
+
+            # Open Interest:
+            if fetch.oi is None:
+                print 'Loading Open Interest For %s...' % fetch.id
+                fetch.oi = VIXImplied.openinterest(fetch)
+
+            # Save all changes:
+            session.commit()
 
 if __name__ == '__main__':
     if Helpers.ismarketopen():
@@ -170,3 +198,6 @@ if __name__ == '__main__':
             tradables = session.query(Tradable).filter_by(enabled=True).all()
             for tradable in tradables:
                 client.fetch(tradable.name)
+        elif args[1] == '-v':
+            # Update all Incomplete Volatilities:
+            OptionsDataClient.updatevols()

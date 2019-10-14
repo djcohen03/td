@@ -138,10 +138,10 @@ class VIXImplied(object):
     def volume(cls, fetch):
         ''' Get total volume for the given options surface
         '''
-        return sum([option.volume for option in fetch.values])
+        return sum([option.volume for option in fetch.values if option.volume])
 
     @classmethod
-    def openinterest(cls, surface):
+    def openinterest(cls, fetch):
         ''' Get total open interest for the given options surface
         '''
-        return sum([option.openinterest for option in fetch.values])
+        return sum([option.openinterest for option in fetch.values if option.openinterest])
