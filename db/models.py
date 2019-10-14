@@ -114,5 +114,10 @@ class OptionsFetch(Base):
     def cststring(self):
         ''' Convert the given datetime into a CST String
         '''
-        csttime = self.time - relativedelta(hours=5)
-        return csttime.strftime('%B %d at %I:%M') # Central')
+        return self.csttime.strftime('%B %d at %I:%M') # Central')
+
+    @property
+    def csttime(self):
+        ''' Convert the given datetime into a CST String
+        '''
+        return self.time - relativedelta(hours=5)
