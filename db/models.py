@@ -121,3 +121,10 @@ class OptionsFetch(Base):
         ''' Convert the given datetime into a CST String
         '''
         return self.time - relativedelta(hours=5)
+
+    @property
+    def spot(self):
+        ''' Gets the spot price for this surface fetch
+        '''
+        sample = self.values[0]
+        return float(sample.underlying)
