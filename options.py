@@ -154,7 +154,15 @@ class OptionsDataClient(object):
     def updatevols(cls):
         ''' Update the values of OptionsFetch volatility, oi, volume columns
         '''
-        ids = [id for id, in session.query(OptionsFetch.id).all()]
+        # Get the IDs of the all options fetches from the past five days:
+        now = datetime.datetime.now()
+        days = 5
+        cutoff = now - datetime.timedelta(days=days)
+        query = session.query(OptionsFetch.id).filter(OptionsFetch.time > cutoff).all()
+        ids = [id for id, in query]
+        print 'Updating %s Options Fetches From the last %s Days...' % (len(ids), days)
+
+        # Update Each Fetch:
         for id in ids:
             fetch = session.query(OptionsFetch).get(id)
 
