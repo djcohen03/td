@@ -16,6 +16,15 @@ class Tradable(Base):
     options = relationship('Option')
     fetches = relationship('OptionsFetch')
 
+    def volatilities(self):
+        ''' Returns a list of 2-tuples of datetimes/volatilities for this tradable
+        '''
+        return sorted([
+            (f.time, float(f.volatility))
+            for f in self.fetches
+            if f.volatility
+        ])
+
     def __repr__(self):
         return '<Tradable: %s>' % self.name
 
