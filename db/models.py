@@ -137,3 +137,35 @@ class OptionsFetch(Base):
         '''
         sample = self.values[0]
         return float(sample.underlying)
+
+    def ivrank(self):
+        ''' Gets the IV Rank of this Options Fetch
+        '''
+        ivs = [iv for date, iv in self.tradable.volatilities()]
+        current = self.volatility
+        if ivs and current:
+            items = sorted(ivs)
+            length = len(items)
+            item = float(current)
+
+            # Get the percentiles of each of the items:
+            percentiles = [i / float(length - 1) for i, _ in enumerate(items)]
+
+            try:
+                # Item is in list:
+                minindex = items.index(item)
+                maxindex = length - list(reversed(items)).index(item) - 1
+                return (percentiles[minindex] + percentiles[maxindex]) / 2. * 100.
+            except ValueError:
+                # This item is not in the list, so get the percentile of the closest
+                # upper and lower numbers and average those two to get the result:
+                uppers = filter(lambda x: x > item, items)
+                lowers = filter(lambda x: x < item, items)
+                upper = min(uppers) if uppers else items[-1]
+                lower = max(lowers) if lowers else items[0]
+
+                upperindex = items.index(upper)
+                lowerindex = length - list(reversed(items)).index(lower) - 1
+                return (percentiles[upperindex] + percentiles[lowerindex]) / 2. * 100.
+        else:
+            return None
