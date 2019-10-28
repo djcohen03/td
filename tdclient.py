@@ -63,3 +63,32 @@ class TDClient(object):
         path = '/v1/marketdata/chains'
         args = {'symbol': symbol}
         return self.request('get', path, args)
+
+    @classmethod
+    def gettoken(redirect='http://localhost', username='DJCOHEN0115'):
+        '''
+        '''
+        # Generate the URL:
+        args = urllib.urlencode({
+            'redirect_uri': redirect,
+            'client_id': username + '@AMER.OAUTHAP',
+            'response_type': 'code'
+        })
+        url = 'https://auth.tdameritrade.com/auth?%s' % args
+        print 'Visit the following Website And Sign In With Your Account: %s' % url
+
+        code = urllib.unquote(raw_input('Enter code: '))
+
+        tdurl = 'https://developer.tdameritrade.com/authentication/apis/post/token-0'
+        print 'Visit The Following Website (May need to log in): %s' % tdurl
+        print 'Enter The Following, and hit "Send":'
+        print '\tgrant_type: authorization_code'
+        print '\taccess_type: offline'
+        print '\tclient_id: %s' % username
+        print '\tredirect_uri: %s' % redirect
+
+        token = raw_input('Enter Refresh Token: ')
+        # todo: overwrite the tdtoken.py file
+
+if __name__ == '__main__':
+    TDClient.gettoken()

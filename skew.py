@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from db.models import Tradable, Option, OptionData, session
 
 def plotchain(chain, filename, title, ylower=0, yupper=40):
+    # todo: https://stackoverflow.com/questions/753190/programmatically-generate-video-or-animated-gif-in-python/35943809#35943809
     plt.figure(figsize=(16, 8))
     # Sort the chain by delta:
     for (ctype, color) in [('CALL', (1.0, 0, 0)), ('PUT', (0, 0, 1.0))]:
