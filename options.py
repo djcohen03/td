@@ -1,6 +1,7 @@
 import sys
 import time
 import datetime
+import traceback
 import tdtoken
 from tdclient import TDClient
 from implied import VIXImplied
@@ -55,14 +56,20 @@ class OptionsDataClient(object):
     def fetch(self, name):
         '''
         '''
-        start = time.time()
-        # Query the TD API:
-        tradable = session.query(Tradable).filter_by(name=name).first()
-        response = self.tdclient.optionschain(tradable.name)
+        try:
+            start = time.time()
+            # Query the TD API:
+            tradable = session.query(Tradable).filter_by(name=name).first()
+            response = self.tdclient.optionschain(tradable.name)
 
-        self._parse(response, tradable)
+            self._parse(response, tradable)
 
-        print 'Finished Fetching %s Options Data In %.2fs' % (tradable, time.time() - start)
+            print 'Finished Fetching %s Options Data In %.2fs' % (tradable, time.time() - start)
+        except:
+            print 'An Error Occurred On Fetching %s Options, Skipping...' % name
+            print traceback.format_exc()
+            session.rollback()
+
 
     def _parse(self, data, tradable):
         ''' Parse the options chain data and insert in into the Database
