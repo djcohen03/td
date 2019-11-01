@@ -53,10 +53,19 @@ class OptionsDataClient(object):
         '''
         self.tdclient.authenticate()
 
+    def isauthenticated(self):
+        ''' Determine if session is authenticated
+        '''
+        return self.tdclient.isauthenticated()
+
     def fetch(self, name):
         '''
         '''
         try:
+            # Make sure the session is still valid:
+            if not self.isauthenticated():
+                self.authenticate()
+
             start = time.time()
             # Query the TD API:
             tradable = session.query(Tradable).filter_by(name=name).first()

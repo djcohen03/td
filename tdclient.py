@@ -31,6 +31,16 @@ class TDClient(object):
         else:
             return response
 
+    def isauthenticated(self):
+        ''' Determine if the current session is authenticated by hitting a
+            simple endpoint
+        '''
+        try:
+            self.request('get', '/v1/accounts')
+            return True
+        except:
+            return False
+
     def authenticate(self):
         ''' Does an initial authentication with TD's Refresh API
         '''
