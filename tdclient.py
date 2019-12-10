@@ -96,6 +96,7 @@ class TDClient(object):
         print '\taccess_type: offline'
         print '\tclient_id: %s' % username
         print '\tredirect_uri: %s' % redirect
+        print '\tcode: %s' % code
 
         token = raw_input('Enter Refresh Token: ')
         # todo: overwrite the tdtoken.py file
