@@ -75,7 +75,7 @@ class TDClient(object):
         return self.request('get', path, args)
 
     @classmethod
-    def gettoken(redirect='http://localhost', username='DJCOHEN0115'):
+    def gettoken(cls, redirect='http://localhost', username='DJCOHEN0115'):
         '''
         '''
         # Generate the URL:
