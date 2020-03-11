@@ -150,7 +150,7 @@ class OptionsFetch(Base):
     def csttime(self):
         ''' Convert the given datetime into a CST String
         '''
-        return self.time - relativedelta(hours=6)
+        return self.time - relativedelta(hours=5)
 
     @property
     def spot(self):
