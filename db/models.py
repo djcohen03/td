@@ -221,7 +221,19 @@ class Token(Base):
         return (datetime.date.today() - self.date).days
 
     @property
+    def expires(self):
+        ''' Date that this Token Expires
+        '''
+        return self.date + relativedelta(days=30)
+
+    @property
     def isvalid(self):
         ''' Determine if this token is still valid
         '''
         return self.daysleft > 0
+
+    @property
+    def truncated(self):
+        ''' Truncated Token For Display
+        '''
+        return self.token[:6]
