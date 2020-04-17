@@ -2,10 +2,9 @@ import sys
 import time
 import datetime
 import traceback
-import tdtoken
 from tdclient import TDClient
 from implied import VIXImplied
-from db.models import Tradable, Option, OptionData, OptionsFetch, session
+from db.models import Tradable, Option, OptionData, OptionsFetch, Token, session
 
 class Helpers(object):
     @classmethod
@@ -43,10 +42,11 @@ class Helpers(object):
             return option
 
 class OptionsDataClient(object):
-    def __init__(self, token, clientid):
+    def __init__(self, clientid):
         ''' Client for Repeatedly Fetching & Storing Options Chain Data
         '''
-        self.tdclient = TDClient(token, clientid)
+        self.token = Token.current().token
+        self.tdclient = TDClient(self.token, clientid)
 
     def authenticate(self):
         ''' Refresh the TD API Session
@@ -211,14 +211,14 @@ if __name__ == '__main__':
         elif args[1] == '-t':
             # Fetch One Specific Tradable:
             tradable = args[2]
-            client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
+            client = OptionsDataClient('DJCOHEN0115')
             tradable = session.query(Tradable).filter_by(name=tradable).first()
             if tradable:
                 client.fetch(tradable.name)
 
         elif args[1] == '--all':
             # Ftech all enabled tradables:
-            client = OptionsDataClient(tdtoken.token, 'DJCOHEN0115')
+            client = OptionsDataClient('DJCOHEN0115')
             tradables = session.query(Tradable).filter_by(enabled=True).all()
             for tradable in tradables:
                 client.fetch(tradable.name)

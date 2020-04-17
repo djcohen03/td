@@ -1,3 +1,4 @@
+import datetime
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Numeric, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
@@ -190,3 +191,37 @@ class OptionsFetch(Base):
                 return (percentiles[upperindex] + percentiles[lowerindex]) / 2. * 100.
         else:
             return None
+
+
+class Token(Base):
+    ''' Class to Represent a TD API Token
+    '''
+    __tablename__ = 'tokens'
+    id = Column(Integer, primary_key=True)
+    token = Column(String, nullable=False, unique=True)
+    date = Column(Date, nullable=False)
+
+    @classmethod
+    def current(cls):
+        ''' Get the current Token
+        '''
+        tokens = session.query(cls).all()
+        return max(tokens, key=lambda token: token.date)
+
+    @property
+    def daysleft(self):
+        ''' Number of days left until this token becomes invalid
+        '''
+        return max(0, 30 - self.dayssince)
+
+    @property
+    def dayssince(self):
+        ''' Days since issuing this token
+        '''
+        return (datetime.date.today() - self.date).days
+
+    @property
+    def isvalid(self):
+        ''' Determine if this token is still valid
+        '''
+        return self.daysleft > 0

@@ -1,6 +1,8 @@
+import sys
 import urllib
 import requests
 import datetime
+from db.models import *
 
 class TDClient(object):
     ''' Client For Fetching Data from the TD Ameritrade Data API
@@ -76,7 +78,7 @@ class TDClient(object):
 
     @classmethod
     def gettoken(cls, redirect='http://localhost', username='DJCOHEN0115'):
-        '''
+        ''' Step-By-Step Token Refresh Process
         '''
         # Generate the URL:
         args = urllib.urlencode({
@@ -98,8 +100,31 @@ class TDClient(object):
         print '\tredirect_uri: %s' % redirect
         print '\tcode: %s' % code
 
-        token = raw_input('Enter Refresh Token: ')
-        # todo: overwrite the tdtoken.py file
+        # Do token import:
+        return cls.importtoken()
+
+    @classmethod
+    def importtoken(cls):
+        ''' Import token directly into the database
+        '''
+        # Gather Token Args:
+        tokenstr = raw_input('Enter Refresh Token: ')
+        today = datetime.date.today()
+
+        # Create & Add Token to the Database:
+        token = Token(token=tokenstr, date=today)
+        session.add(token)
+        session.commit()
+
+        print 'Imported %s' % token
+        return token
+
+
 
 if __name__ == '__main__':
-    TDClient.gettoken()
+    if (len(sys.argv) > 1) and (sys.argv[1] == '--import'):
+        # Allow User to Import Token Directly By Pasting:
+        TDClient.importtoken()
+    else:
+        # Base Case, User Upload, Prompted Step-By-Step Thru Entire Process:
+        TDClient.gettoken()
