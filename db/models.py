@@ -2,8 +2,8 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Numeric, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
-from .base import Base
-from .session import session, engine
+from base import Base
+from session import session, engine
 
 
 class Tradable(Base):
@@ -237,3 +237,22 @@ class Token(Base):
         ''' Truncated Token For Display
         '''
         return self.token[:6]
+
+
+class Account(Base):
+    ''' TD Ameritrade Account
+    '''
+    __tablename__ = 'accounts'
+    id = Column(Integer, primary_key=True)
+
+class AccountBalance(Base):
+    ''' TD Ameritrade Account Balance
+    '''
+    __tablename__ = 'account_balances'
+    id = Column(Integer, primary_key=True)
+    time = Column(DateTime)
+    cash = Column(Numeric, nullable=False)
+    value = Column(Numeric, nullable=False)
+    initial = Column(Numeric, nullable=False)
+    account_id = Column(Integer, ForeignKey('accounts.id'), nullable=False)
+    account = relationship('Account')
