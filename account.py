@@ -59,7 +59,7 @@ class AccountDataClient(object):
             current = accountjson['securitiesAccount']['currentBalances']
             cash = float(current['availableFunds'])
             value = float(current['liquidationValue'])
-            initial = float(accountjson['securitiesAccount']['initialBalances']['totalCash'])
+            initial = float(current['moneyMarketFund'])
 
             # Create new AccountBalance snapshot:
             balance = AccountBalance(
@@ -97,4 +97,4 @@ class AccountDataClient(object):
 if __name__ == '__main__':
     client = AccountDataClient('DJCOHEN0115')
     client.accounts()
-    client.orders()
+    # client.orders()
