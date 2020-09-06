@@ -212,7 +212,7 @@ class Token(Base):
     def daysleft(self):
         ''' Number of days left until this token becomes invalid
         '''
-        return max(0, 30 - self.dayssince)
+        return max(0, 90 - self.dayssince)
 
     @property
     def dayssince(self):
@@ -224,7 +224,7 @@ class Token(Base):
     def expires(self):
         ''' Date that this Token Expires
         '''
-        return self.date + relativedelta(days=30)
+        return self.date + relativedelta(days=90)
 
     @property
     def isvalid(self):
