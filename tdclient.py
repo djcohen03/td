@@ -91,17 +91,28 @@ class TDClient(object):
 
         code = urllib.unquote(raw_input('Enter code: '))
 
-        tdurl = 'https://developer.tdameritrade.com/authentication/apis/post/token-0'
-        print 'Visit The Following Website (May need to log in): %s' % tdurl
-        print 'Enter The Following, and hit "Send":'
-        print '\tgrant_type: authorization_code'
-        print '\taccess_type: offline'
-        print '\tclient_id: %s' % username
-        print '\tredirect_uri: %s' % redirect
-        print '\tcode: %s' % code
+        # Do POST request to get new token:
+        payload = {
+            'access_type': 'offline',
+            'client_id': username,
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': redirect,
+        }
+        url = 'https://api.tdameritrade.com/v1/oauth2/token'
+        response = requests.post(url, data=payload).json()
 
-        # Do token import:
-        return cls.importtoken()
+        token = response.get('refresh_token')
+
+        # Create & Add Token to the Database:
+        today = datetime.date.today()
+        token = Token(token=token, date=today)
+        session.add(token)
+        session.commit()
+
+        print 'New Refresh Token (Saved):'
+        print token.token
+
 
     @classmethod
     def importtoken(cls):
