@@ -69,6 +69,14 @@ class TDClient(object):
 
         print 'Successfully Authenticated TD\'s API, until %s' % self.expiration
 
+    def markethours(self, market='EQUITY'):
+        ''' Get Today's Market Hours
+        '''
+        path = '/v1/marketdata/%s/hours' % market
+        today = str(datetime.date.today())
+        args = {'date': today}
+        return self.request('get', path, args)
+
     def optionschain(self, symbol):
         ''' Gets the Full Options Chain for the Given Symbol
         '''
