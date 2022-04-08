@@ -6,3 +6,4 @@ ois/*
 db/dbpaths.py
 logs.txt
 logs.*.txt
+.DS_Store

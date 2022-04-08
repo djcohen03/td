@@ -1,57 +1,9 @@
-import datetime
-from dateutil.relativedelta import relativedelta
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Numeric, Boolean, UniqueConstraint
+from td.database.config import Model
+from td.database.mixins import CreatedAtMixin
+from sqlalchemy import Column, Integer, Numeric, String, Boolean, ForeignKey, Date, DateTime, Enum
 from sqlalchemy.orm import relationship
-from base import Base
-from session import session, engine
 
-
-class Tradable(Base):
-    ''' Class to Represent a Stock Market Equity
-    '''
-    __tablename__ = 'tradables'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    enabled = Column(Boolean)
-
-    options = relationship('Option')
-    fetches = relationship('OptionsFetch')
-
-    def volatilities(self):
-        ''' Returns a list of 2-tuples of datetimes/volatilities for this tradable
-        '''
-        return sorted([
-            (f.time, float(f.volatility))
-            for f in self.fetches
-            if f.volatility
-        ])
-
-    def lastfetch(self):
-        ''' Get the most recent options fetch for this tradable
-        '''
-        fetches = self.fetches
-        if fetches:
-            return max(fetches, key=lambda x: x.time)
-        else:
-            return None
-
-    def ivrank(self):
-        ''' Try to get the most recent IV Rank for this tradable
-        '''
-        fetch = self.lastfetch()
-        if fetch:
-            try:
-                return fetch.ivrank()
-            except:
-                return None
-        else:
-            return None
-
-    def __repr__(self):
-        return '<Tradable: %s>' % self.name
-
-
-class Option(Base):
+class Option(Model, CreatedAtMixin):
     ''' Class to Represent an Option
     '''
     __tablename__ = 'options'
@@ -76,7 +28,7 @@ class Option(Base):
             self.expiration
         )
 
-class OptionData(Base):
+class OptionData(Model, CreatedAtMixin):
     ''' Class to Represent an Option Data Snapshot
     '''
     __tablename__ = 'options_data'
@@ -115,14 +67,14 @@ class OptionData(Base):
     fetch_id = Column(Integer, ForeignKey('options_fetch.id'))
     fetch = relationship('OptionsFetch')
 
-    __mapper_args__ = {
-        'order_by': time
-    }
+    # __mapper_args__ = {
+    #     'order_by': time
+    # }
 
     def __repr__(self):
         return '<OptionData: %s>' % self.time
 
-class OptionsFetch(Base):
+class OptionsFetch(Model, CreatedAtMixin):
     '''
     '''
     __tablename__ = 'options_fetch'
@@ -137,9 +89,9 @@ class OptionsFetch(Base):
     oi = Column(Integer)
     volume = Column(Integer)
 
-    __mapper_args__ = {
-        'order_by': time
-    }
+    # __mapper_args__ = {
+    #     'order_by': time
+    # }
 
     @property
     def cststring(self):
@@ -191,68 +143,3 @@ class OptionsFetch(Base):
                 return (percentiles[upperindex] + percentiles[lowerindex]) / 2. * 100.
         else:
             return None
-
-
-class Token(Base):
-    ''' Class to Represent a TD API Token
-    '''
-    __tablename__ = 'tokens'
-    id = Column(Integer, primary_key=True)
-    token = Column(String, nullable=False, unique=True)
-    date = Column(Date, nullable=False)
-
-    @classmethod
-    def current(cls):
-        ''' Get the current Token
-        '''
-        tokens = session.query(cls).all()
-        return max(tokens, key=lambda token: token.date)
-
-    @property
-    def daysleft(self):
-        ''' Number of days left until this token becomes invalid
-        '''
-        return max(0, 90 - self.dayssince)
-
-    @property
-    def dayssince(self):
-        ''' Days since issuing this token
-        '''
-        return (datetime.date.today() - self.date).days
-
-    @property
-    def expires(self):
-        ''' Date that this Token Expires
-        '''
-        return self.date + relativedelta(days=90)
-
-    @property
-    def isvalid(self):
-        ''' Determine if this token is still valid
-        '''
-        return self.daysleft > 0
-
-    @property
-    def truncated(self):
-        ''' Truncated Token For Display
-        '''
-        return self.token[:6]
-
-
-class Account(Base):
-    ''' TD Ameritrade Account
-    '''
-    __tablename__ = 'accounts'
-    id = Column(Integer, primary_key=True)
-
-class AccountBalance(Base):
-    ''' TD Ameritrade Account Balance
-    '''
-    __tablename__ = 'account_balances'
-    id = Column(Integer, primary_key=True)
-    time = Column(DateTime)
-    cash = Column(Numeric, nullable=False)
-    value = Column(Numeric, nullable=False)
-    initial = Column(Numeric, nullable=False)
-    account_id = Column(Integer, ForeignKey('accounts.id'), nullable=False)
-    account = relationship('Account')

@@ -1,30 +1,36 @@
+import os
 import time
+import logging
 import datetime
-from tdclient import TDClient
-from db.models import session, Token, Account, AccountBalance
+from td.client import TDClient
+from td.database.models import *
+from td.database.config import db_config
+
+log = logging.getLogger('td.accounts')
 
 class Helpers(object):
     @classmethod
     def getaccount(cls, accountid):
         ''' Get/Create an Account based on the given Account ID
         '''
-        account = session.query(Account).get(accountid)
+        account = db_config.session.query(Account).get(accountid)
         if account:
             return account
         else:
-            print 'Creating New Account %s...' % accountid
+            log.info('Creating New Account %s...' % accountid)
             account = Account(id=accountid)
-            session.add(account)
-            session.commit()
+            db_config.session.add(account)
+            db_config.session.commit()
             return account
 
 
 class AccountDataClient(object):
-    def __init__(self, clientid):
+    def __init__(self):
         ''' Client for Repeatedly Fetching & Storing Options Chain Data
         '''
+        self.clientid = os.environ.get('TDCLIENTID')
         self.token = Token.current().token
-        self.tdclient = TDClient(self.token, clientid)
+        self.tdclient = TDClient(self.token, self.clientid)
 
     def authenticate(self):
         ''' Refresh the TD API Session
@@ -69,13 +75,13 @@ class AccountDataClient(object):
                 initial=initial,
                 account=account
             )
-            session.add(balance)
-            session.commit()
+            db_config.session.add(balance)
+            db_config.session.commit()
 
-        print 'Finished Adding Balances For %s Accounts In %.2fs' % (
+        log.info('Finished Adding Balances For %s Accounts In %.2fs' % (
             len(accounts),
             time.time() - start,
-        )
+        ))
 
 
     def orders(self):
@@ -95,6 +101,6 @@ class AccountDataClient(object):
 
 
 if __name__ == '__main__':
-    client = AccountDataClient('DJCOHEN0115')
+    client = AccountDataClient()
     client.accounts()
     # client.orders()

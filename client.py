@@ -1,8 +1,12 @@
 import sys
 import urllib
+import logging
 import requests
 import datetime
-from db.models import *
+from td.database.models import *
+from td.database.config import db_config
+
+log = logging.getLogger('td.client')
 
 class TDClient(object):
     ''' Client For Fetching Data from the TD Ameritrade Data API
@@ -19,7 +23,7 @@ class TDClient(object):
         ''' Do a GET or POST Request with the given path and (optional) data
         '''
         if method == 'get':
-            url = '%s%s?%s' % (self.host, path, urllib.urlencode(data))
+            url = '%s%s?%s' % (self.host, path, urllib.parse.urlencode(data))
             response = requests.get(url=url, headers=self.headers).json()
         elif method == 'post':
             url = self.host + path
@@ -67,7 +71,7 @@ class TDClient(object):
         now = datetime.datetime.now()
         self.expiration = now + datetime.timedelta(0, seconds)
 
-        print 'Successfully Authenticated TD\'s API, until %s' % self.expiration
+        log.info('Successfully Authenticated TD\'s API, until %s' % self.expiration)
 
     def markethours(self, market='EQUITY'):
         ''' Get Today's Market Hours
@@ -89,15 +93,15 @@ class TDClient(object):
         ''' Step-By-Step Token Refresh Process
         '''
         # Generate the URL:
-        args = urllib.urlencode({
+        args = urllib.parse.urlencode({
             'redirect_uri': redirect,
             'client_id': username + '@AMER.OAUTHAP',
             'response_type': 'code'
         })
         url = 'https://auth.tdameritrade.com/auth?%s' % args
-        print 'Visit the following Website And Sign In With Your Account: %s' % url
+        log.info('Visit the following Website And Sign In With Your Account: %s' % url)
 
-        code = urllib.unquote(raw_input('Enter code: '))
+        code = urllib.parse.unquote(input('Enter code: '))
 
         # Do POST request to get new token:
         payload = {
@@ -115,11 +119,11 @@ class TDClient(object):
         # Create & Add Token to the Database:
         today = datetime.date.today()
         token = Token(token=token, date=today)
-        session.add(token)
-        session.commit()
+        db_config.session.add(token)
+        db_config.session.commit()
 
-        print 'New Refresh Token (Saved):'
-        print token.token
+        log.info('New Refresh Token (Saved):')
+        log.info(token.token)
 
 
     @classmethod
@@ -127,15 +131,15 @@ class TDClient(object):
         ''' Import token directly into the database
         '''
         # Gather Token Args:
-        tokenstr = raw_input('Enter Refresh Token: ')
+        tokenstr = input('Enter Refresh Token: ')
         today = datetime.date.today()
 
         # Create & Add Token to the Database:
         token = Token(token=tokenstr, date=today)
-        session.add(token)
-        session.commit()
+        db_config.session.add(token)
+        db_config.session.commit()
 
-        print 'Imported %s' % token
+        log.info('Imported %s' % token)
         return token
 
 
