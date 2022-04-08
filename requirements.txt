@@ -1,5 +1,5 @@
 alembic==1.6.5
-flask_appbuilder==3.4.4
+flask_appbuilder==3.4.5
 werkzeug==0.16.0
 psycopg2==2.9.3
 markupsafe==2.0.1
